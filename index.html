@@ -561,7 +561,7 @@
         <!-- Name -->
         <div class="form-group">
           <label for="name">👤 Your Name <span class="optional">(optional)</span></label>
-          <input type="text" id="name" placeholder="e.g. Thabo, Sarah..." autocomplete="off" autocorrect="off" spellcheck="false">
+          <input type="text" id="name" placeholder="e.g. Louis, Sarah..." autocomplete="off" autocorrect="off" spellcheck="false">
         </div>
 
         <hr class="form-divider">
@@ -569,17 +569,17 @@
 
         <div class="form-group">
           <label for="song1">Song Request #1 <span class="required">*</span></label>
-          <input type="text" id="song1" placeholder="e.g. FE!N – Travis Scott ft. Playboi Carti" required autocomplete="off">
+          <input type="text" id="song1" placeholder="e.g. I Gotta Feeling – Black Eyed Peas" required autocomplete="off">
         </div>
 
         <div class="form-group">
           <label for="song2">Song Request #2 <span class="optional">(optional)</span></label>
-          <input type="text" id="song2" placeholder="e.g. Makhadzi – Ghanama" autocomplete="off">
+          <input type="text" id="song2" placeholder="e.g. Mr. Brightside – The Killers" autocomplete="off">
         </div>
 
         <div class="form-group">
           <label for="song3">Song Request #3 <span class="optional">(optional)</span></label>
-          <input type="text" id="song3" placeholder="e.g. Coldplay – A Sky Full of Stars" autocomplete="off">
+          <input type="text" id="song3" placeholder="e.g. Levels – Avicii" autocomplete="off">
         </div>
 
         <hr class="form-divider">
@@ -899,12 +899,20 @@
     setTimeout(() => confetti({ particleCount: 60, spread: 100, angle: 120, origin: { x: 1, y: 0.65 }, colors, zIndex: 9999 }), 420);
   }
 
-  // =====================================================================
-  // VIBE CHIP TOGGLE
-  // =====================================================================
-  document.querySelectorAll('.vibe-chip').forEach(chip => {
-    chip.addEventListener('click', () => chip.classList.toggle('selected'));
+// =====================================================================
+// VIBE CHIP TOGGLE
+// =====================================================================
+document.querySelectorAll('.vibe-chip input[type="checkbox"]').forEach(checkbox => {
+  const chip = checkbox.closest('.vibe-chip');
+
+  // set initial state
+  chip.classList.toggle('selected', checkbox.checked);
+
+  // keep visual state synced with actual checkbox state
+  checkbox.addEventListener('change', () => {
+    chip.classList.toggle('selected', checkbox.checked);
   });
+});
 
   // =====================================================================
   // DASHBOARD — fetch from Google Apps Script
