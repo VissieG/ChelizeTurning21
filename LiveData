@@ -1,1309 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0D0D0D">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Chelize's 21st 🎉 Playlist Requests</title>
+# Chelize's 21st – Playlist Request App
+## Setup & Deployment Guide
 
-  <!-- Firebase Compat SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-  <!-- QR Code -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
+Everything lives in **one file**: `index.html`.
+No build step. No server. Just configure Firebase and upload.
 
-  <style>
-    /* =====================================================
-       VARIABLES & RESET
-    ===================================================== */
-    :root {
-      --bg:            #0D0D0D;
-      --bg-card:       #161616;
-      --bg-input:      #1E1E1E;
-      --bg-input-f:    #252525;
-      --gold:          #F5C518;
-      --gold-dim:      rgba(245,197,24,0.12);
-      --gold-glow:     0 0 22px rgba(245,197,24,0.35);
-      --pink:          #FF69B4;
-      --pink-dim:      rgba(255,105,180,0.12);
-      --text:          #F0F0F0;
-      --text-muted:    #777;
-      --text-dim:      #3A3A3A;
-      --border:        #282828;
-      --border-gold:   rgba(245,197,24,0.28);
-      --radius:        14px;
-      --radius-sm:     9px;
-      --trans:         0.2s ease;
-    }
+---
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+## Step 1 — Create a Free Firebase Project
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-    }
+1. Go to [https://console.firebase.google.com](https://console.firebase.google.com)
+2. Click **"Add project"** → name it something like `chelizes-21st`
+3. Disable Google Analytics (not needed) → **Create project**
+4. In the left sidebar click **Firestore Database** → **Create database**
+   - Choose **"Start in test mode"** (open access, fine for a party app)
+   - Pick any region (e.g. `europe-west`) → **Enable**
 
-    /* =====================================================
-       LAYOUT
-    ===================================================== */
-    .page { min-height: 100vh; }
-    .hidden { display: none !important; }
+---
 
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 24px 16px 60px;
-    }
-    .container.wide {
-      max-width: 1100px;
-      padding: 20px 20px 60px;
-    }
+## Step 2 — Get Your Firebase Config
 
-    /* =====================================================
-       HEADER
-    ===================================================== */
-    .site-header {
-      text-align: center;
-      padding: 32px 0 24px;
-    }
+1. In Firebase Console → click the **gear icon** → **Project settings**
+2. Scroll down to **"Your apps"** → click the **`</>`** (Web) icon
+3. Register app (any nickname) — you don't need Firebase Hosting
+4. Copy the config object that looks like this:
 
-    .header-emoji {
-      font-size: 60px;
-      display: block;
-      margin-bottom: 10px;
-      animation: bounce 2.4s ease-in-out infinite;
-    }
+```js
+const firebaseConfig = {
+  apiKey:            "AIzaSy...",
+  authDomain:        "chelizes-21st.firebaseapp.com",
+  projectId:         "chelizes-21st",
+  storageBucket:     "chelizes-21st.appspot.com",
+  messagingSenderId: "123456789",
+  appId:             "1:123456789:web:abc123"
+};
+```
 
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-10px); }
-    }
+---
 
-    .site-header h1 {
-      font-size: 34px;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--gold) 0%, var(--pink) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      line-height: 1.1;
-      margin-bottom: 6px;
-      letter-spacing: -0.5px;
-    }
+## Step 3 — Update index.html
 
-    .site-header h2 {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 12px;
-    }
+Open `index.html` and find this section near the bottom (around line 400):
 
-    .subtitle {
-      color: var(--text-muted);
-      font-size: 15px;
-      line-height: 1.65;
-      margin-bottom: 20px;
-    }
+```js
+const firebaseConfig = {
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_AUTH_DOMAIN",
+  ...
+```
 
-    /* =====================================================
-       LIVE COUNTER
-    ===================================================== */
-    .live-counter {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--gold-dim);
-      border: 1px solid var(--border-gold);
-      border-radius: 100px;
-      padding: 9px 20px;
-      font-size: 14px;
-      color: var(--gold);
-      font-weight: 600;
-    }
+Replace the placeholder values with your real config from Step 2.
 
-    .counter-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--gold);
-      border-radius: 50%;
-      animation: livepulse 1.6s ease-in-out infinite;
-      flex-shrink: 0;
-    }
+While you're there, change the DJ PIN too:
 
-    @keyframes livepulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.4; transform: scale(0.65); }
-    }
+```js
+const DJ_PIN = "2121"; // Change to whatever you want
+```
 
-    /* =====================================================
-       FORM CARD
-    ===================================================== */
-    .form-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px 22px 24px;
-      margin-top: 12px;
-    }
+---
 
-    /* =====================================================
-       FORM ELEMENTS
-    ===================================================== */
-    .form-group { margin-bottom: 22px; }
+## Step 4 — Deploy to Netlify (Easiest — 30 seconds)
 
-    .form-group label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 9px;
-      letter-spacing: 0.2px;
-    }
+1. Go to [https://netlify.com/drop](https://netlify.com/drop)
+2. **Drag and drop** your `index.html` file onto the page
+3. Netlify instantly gives you a public URL like `https://amazing-name-123.netlify.app`
+4. Share that link on WhatsApp — done! ✅
 
-    .optional { color: var(--text-muted); font-weight: 400; font-size: 12px; margin-left: 3px; }
-    .required { color: var(--pink); margin-left: 2px; }
+**Optional:** To get a custom URL (e.g. `chelizes21st.netlify.app`):
+- Create a free Netlify account
+- Go to your site settings → **Change site name**
 
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      background: var(--bg-input);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      font-size: 16px; /* 16px prevents iOS zoom */
-      padding: 14px 16px;
-      outline: none;
-      transition: border-color var(--trans), box-shadow var(--trans), background var(--trans);
-      -webkit-appearance: none;
-      appearance: none;
-    }
+---
 
-    input[type="text"]:focus,
-    input[type="password"]:focus {
-      border-color: var(--gold);
-      background: var(--bg-input-f);
-      box-shadow: var(--gold-glow);
-    }
+## Alternatively: Deploy to Vercel
 
-    input::placeholder { color: var(--text-dim); }
+1. Create a free account at [https://vercel.com](https://vercel.com)
+2. Install the Vercel CLI: `npm i -g vercel`
+3. In the folder containing `index.html`, run: `vercel`
+4. Follow the prompts — you'll get a URL in under a minute
 
-    .form-divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 6px 0 22px;
-    }
+---
 
-    .section-label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: var(--gold);
-      margin-bottom: 16px;
-    }
+## How to Use the App
 
-    /* =====================================================
-       VIBE CHIPS
-    ===================================================== */
-    .vibe-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
+### For guests (form page)
+- Share the URL via WhatsApp, Instagram link in bio, etc.
+- Works on all phones — no app download needed
+- The live counter updates in real-time as requests come in
 
-    @media (min-width: 400px) {
-      .vibe-grid { grid-template-columns: repeat(3, 1fr); }
-    }
+### For the DJ (dashboard)
+- Scroll to the very bottom of the form page
+- Click the small **"🎧 DJ Access"** link
+- Enter your PIN (default: `2121`)
+- Dashboard features:
+  - **Top Songs** — bar chart of most requested songs with fuzzy duplicate grouping
+  - **Genre Breakdown** — see what vibes the crowd wants
+  - **All Submissions table** — every request in full
+  - **Export CSV** — download everything as a spreadsheet
+  - **QR Code** — generate a QR code to project or print for easy sharing
 
-    .vibe-chip {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      padding: 13px 8px;
-      background: var(--bg-input);
-      border: 1.5px solid var(--border);
-      border-radius: 100px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all var(--trans);
-      text-align: center;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
+---
 
-    .vibe-chip input[type="checkbox"] { display: none; }
+## Firebase Security (optional but recommended)
 
-    .vibe-chip:hover { border-color: rgba(245,197,24,0.5); color: var(--gold); }
+After the party, lock down your database so nobody can write to it anymore.
 
-    .vibe-chip.selected {
-      background: var(--gold-dim);
-      border-color: var(--gold);
-      color: var(--gold);
-      box-shadow: 0 0 14px rgba(245,197,24,0.2);
-    }
+In Firebase Console → Firestore → **Rules**, replace with:
 
-    /* =====================================================
-       BUTTONS
-    ===================================================== */
-    .btn-submit {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, var(--gold) 0%, var(--pink) 100%);
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 16px;
-      font-weight: 700;
-      color: #000;
-      cursor: pointer;
-      transition: transform var(--trans), box-shadow var(--trans), opacity var(--trans);
-      margin-top: 6px;
-      letter-spacing: 0.3px;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .btn-submit:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 28px rgba(245,197,24,0.45);
-    }
-
-    .btn-submit:active:not(:disabled) { transform: translateY(0); }
-    .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
-
-    .btn-submit.small {
-      width: auto;
-      padding: 10px 18px;
-      font-size: 13px;
-    }
-
-    .btn-secondary {
-      padding: 10px 18px;
-      background: var(--bg-input);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-      cursor: pointer;
-      transition: all var(--trans);
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
-
-    /* =====================================================
-       MODALS
-    ===================================================== */
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.82);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 900;
-      padding: 20px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      animation: fadein 0.2s ease;
-    }
-
-    @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
-
-    .modal-content {
-      background: var(--bg-card);
-      border: 1px solid var(--border-gold);
-      border-radius: 20px;
-      padding: 40px 28px;
-      text-align: center;
-      max-width: 360px;
-      width: 100%;
-      animation: slideup 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 28px 64px rgba(0,0,0,0.65), var(--gold-glow);
-    }
-
-    @keyframes slideup {
-      from { transform: translateY(36px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
-
-    /* Success Modal */
-    .success-emoji {
-      font-size: 68px;
-      display: block;
-      margin-bottom: 14px;
-      animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    @keyframes pop {
-      from { transform: scale(0); }
-      to   { transform: scale(1); }
-    }
-
-    .success-modal h2 {
-      font-size: 30px;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--gold), var(--pink));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 10px;
-    }
-
-    .success-modal p {
-      color: var(--text-muted);
-      font-size: 16px;
-      line-height: 1.65;
-      margin-bottom: 26px;
-    }
-
-    /* PIN Modal */
-    .pin-modal h2 { font-size: 22px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
-    .pin-modal p  { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
-
-    .pin-modal input {
-      margin-bottom: 10px;
-      text-align: center;
-      letter-spacing: 8px;
-      font-size: 22px;
-      font-weight: 700;
-    }
-
-    .pin-error { color: var(--pink); font-size: 13px; margin-bottom: 14px; min-height: 20px; }
-    .pin-buttons { display: flex; gap: 10px; justify-content: center; }
-
-    /* =====================================================
-       DASHBOARD HEADER
-    ===================================================== */
-    .dashboard-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 14px;
-      padding: 20px 0 16px;
-    }
-
-    .dashboard-header h1 {
-      font-size: 26px;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--gold), var(--pink));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .dashboard-header .subtitle { margin: 4px 0 0; font-size: 13px; }
-
-    .dashboard-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
-    /* =====================================================
-       STATS STRIP
-    ===================================================== */
-    .stats-strip {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 12px;
-      text-align: center;
-    }
-
-    .stat-number {
-      font-size: 34px;
-      font-weight: 800;
-      color: var(--gold);
-      line-height: 1;
-      margin-bottom: 5px;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-    }
-
-    /* =====================================================
-       DASHBOARD GRID
-    ===================================================== */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-
-    @media (min-width: 680px) {
-      .dashboard-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    /* =====================================================
-       DASH CARDS
-    ===================================================== */
-    .dash-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 18px;
-      margin-bottom: 14px;
-    }
-
-    .dash-card:last-child { margin-bottom: 0; }
-
-    .dash-card h3 {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    /* =====================================================
-       SONG BARS
-    ===================================================== */
-    .song-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 7px 0;
-    }
-
-    .song-rank {
-      width: 22px;
-      text-align: center;
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--gold);
-      flex-shrink: 0;
-    }
-
-    .song-info { flex: 1; min-width: 0; }
-
-    .song-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 5px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .song-bar-track {
-      height: 4px;
-      background: var(--border);
-      border-radius: 100px;
-      overflow: hidden;
-    }
-
-    .bar-inner {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold), var(--pink));
-      border-radius: 100px;
-      transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .song-count {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--gold);
-      flex-shrink: 0;
-      min-width: 24px;
-      text-align: right;
-    }
-
-    /* =====================================================
-       GENRE CHART
-    ===================================================== */
-    .genre-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 7px 0;
-    }
-
-    .genre-name {
-      width: 120px;
-      font-size: 13px;
-      color: var(--text-muted);
-      flex-shrink: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .genre-bar-track {
-      flex: 1;
-      height: 10px;
-      background: var(--border);
-      border-radius: 100px;
-      overflow: hidden;
-    }
-
-    .genre-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--pink), var(--gold));
-      border-radius: 100px;
-      transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .genre-count {
-      width: 26px;
-      text-align: right;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      flex-shrink: 0;
-    }
-
-    /* =====================================================
-       TABLE
-    ===================================================== */
-    .table-wrapper {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      min-width: 680px;
-    }
-
-    thead th {
-      text-align: left;
-      padding: 10px 12px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    tbody tr:nth-child(even) { background: rgba(255,255,255,0.018); }
-
-    tbody td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text);
-      max-width: 150px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      vertical-align: middle;
-    }
-
-    tbody tr:hover td { background: var(--gold-dim); }
-
-    .empty-state {
-      text-align: center;
-      color: var(--text-muted);
-      padding: 28px;
-      font-size: 14px;
-    }
-
-    /* =====================================================
-       QR CODE
-    ===================================================== */
-    #qr-code {
-      display: flex;
-      justify-content: center;
-      margin: 16px 0 10px;
-    }
-
-    #qr-code img,
-    #qr-code canvas {
-      border-radius: 10px;
-      border: 5px solid #fff;
-    }
-
-    .qr-url {
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-muted);
-      word-break: break-all;
-      margin-top: 8px;
-    }
-
-    /* =====================================================
-       DJ LINK
-    ===================================================== */
-    .dj-link-wrapper { text-align: center; padding: 16px 0 24px; }
-
-    .dj-link {
-      color: var(--text-dim);
-      font-size: 11px;
-      text-decoration: none;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-family: inherit;
-      transition: color var(--trans);
-      letter-spacing: 0.4px;
-    }
-
-    .dj-link:hover { color: var(--text-muted); }
-
-    /* =====================================================
-       SHAKE ANIMATION (wrong PIN)
-    ===================================================== */
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20%       { transform: translateX(-8px); }
-      40%       { transform: translateX(8px); }
-      60%       { transform: translateX(-5px); }
-      80%       { transform: translateX(5px); }
-    }
-
-    /* =====================================================
-       RESPONSIVE TWEAKS
-    ===================================================== */
-    @media (max-width: 360px) {
-      .site-header h1 { font-size: 28px; }
-      .form-card { padding: 22px 16px 20px; }
-      .stats-strip { gap: 8px; }
-      .stat-number { font-size: 28px; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- ============================================================
-       FORM PAGE
-  ============================================================ -->
-  <div id="page-form" class="page">
-    <div class="container">
-
-      <header class="site-header">
-        <span class="header-emoji">🎉</span>
-        <h1>Chelize's 21st</h1>
-        <h2>Playlist Requests 🎧</h2>
-        <p class="subtitle">
-          Help us build the ultimate party playlist 🔥<br>
-          Drop your top 3 songs you want to hear on the night!
-        </p>
-        <div class="live-counter">
-          <div class="counter-dot"></div>
-          <span id="counter-number">0</span>&nbsp;songs submitted so far 🎵
-        </div>
-      </header>
-
-      <form id="request-form" class="form-card" novalidate>
-
-        <!-- Name -->
-        <div class="form-group">
-          <label for="name">👤 Your Name <span class="optional">(optional)</span></label>
-          <input type="text" id="name" placeholder="e.g. Thabo, Sarah..." autocomplete="off" autocorrect="off" spellcheck="false">
-        </div>
-
-        <hr class="form-divider">
-        <div class="section-label">🎵 Your Song Requests</div>
-
-        <!-- Song 1 -->
-        <div class="form-group">
-          <label for="song1">Song Request #1 <span class="required">*</span></label>
-          <input type="text" id="song1" placeholder="e.g. FE!N – Travis Scott ft. Playboi Carti" required autocomplete="off">
-        </div>
-
-        <!-- Song 2 -->
-        <div class="form-group">
-          <label for="song2">Song Request #2 <span class="optional">(optional)</span></label>
-          <input type="text" id="song2" placeholder="e.g. Makhadzi – Ghanama" autocomplete="off">
-        </div>
-
-        <!-- Song 3 -->
-        <div class="form-group">
-          <label for="song3">Song Request #3 <span class="optional">(optional)</span></label>
-          <input type="text" id="song3" placeholder="e.g. Coldplay – A Sky Full of Stars" autocomplete="off">
-        </div>
-
-        <hr class="form-divider">
-        <div class="section-label">🎛️ Your Vibe Tonight</div>
-
-        <!-- Vibe -->
-        <div class="form-group">
-          <label style="margin-bottom:12px">Select all that apply</label>
-          <div class="vibe-grid">
-            <label class="vibe-chip"><input type="checkbox" name="vibe" value="Hip Hop">🎤 Hip Hop</label>
-            <label class="vibe-chip"><input type="checkbox" name="vibe" value="House">🏠 House</label>
-            <label class="vibe-chip"><input type="checkbox" name="vibe" value="Amapiano">🎺 Amapiano</label>
-            <label class="vibe-chip"><input type="checkbox" name="vibe" value="Afrikaans">🇿🇦 Afrikaans</label>
-            <label class="vibe-chip"><input type="checkbox" name="vibe" value="Throwbacks">⏰ Throwbacks</label>
-            <label class="vibe-chip"><input type="checkbox" name="vibe" value="Pop / Commercial">🌟 Pop</label>
-          </div>
-        </div>
-
-        <hr class="form-divider">
-
-        <!-- Do Not Play -->
-        <div class="form-group">
-          <label for="do-not-play">🚫 DO NOT PLAY List 😂 <span class="optional">(optional)</span></label>
-          <input type="text" id="do-not-play" placeholder="Songs that must be banned from tonight..." autocomplete="off">
-        </div>
-
-        <!-- Dance Floor Song -->
-        <div class="form-group">
-          <label for="dance-song">💃 Song that ALWAYS gets you on the dance floor <span class="optional">(optional)</span></label>
-          <input type="text" id="dance-song" placeholder="Your guaranteed banger..." autocomplete="off">
-        </div>
-
-        <button type="submit" class="btn-submit" id="submit-btn">
-          <span id="submit-btn-text">Submit My Requests 🚀</span>
-        </button>
-
-      </form>
-    </div>
-
-    <div class="dj-link-wrapper">
-      <button class="dj-link" onclick="openDashboard()">🎧 DJ Access</button>
-    </div>
-  </div>
-
-
-  <!-- ============================================================
-       SUCCESS MODAL
-  ============================================================ -->
-  <div id="modal-success" class="modal hidden">
-    <div class="modal-content success-modal">
-      <span class="success-emoji">🔥</span>
-      <h2>Locked in!</h2>
-      <p>Your bangers are on the list.<br>See you on the dance floor 💃</p>
-      <button class="btn-submit" onclick="closeSuccessModal()">
-        <span>Add More Requests</span>
-      </button>
-    </div>
-  </div>
-
-
-  <!-- ============================================================
-       PIN MODAL
-  ============================================================ -->
-  <div id="modal-pin" class="modal hidden">
-    <div class="modal-content pin-modal">
-      <h2>🎧 DJ Dashboard</h2>
-      <p>Enter your PIN to continue</p>
-      <input type="password" id="pin-input" placeholder="• • • •" maxlength="8" autocomplete="off" inputmode="numeric">
-      <div id="pin-error" class="pin-error hidden">❌ Incorrect PIN. Try again.</div>
-      <div class="pin-buttons">
-        <button class="btn-secondary" onclick="closePinModal()">Cancel</button>
-        <button class="btn-submit small" onclick="verifyPin()"><span>Enter</span></button>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ============================================================
-       DASHBOARD PAGE
-  ============================================================ -->
-  <div id="page-dashboard" class="page hidden">
-    <div class="container wide">
-
-      <header class="dashboard-header">
-        <div>
-          <h1>🎧 DJ Dashboard</h1>
-          <p class="subtitle">Chelize's 21st — Playlist HQ</p>
-        </div>
-        <div class="dashboard-actions">
-          <button class="btn-secondary small" onclick="exportCSV()">📥 Export CSV</button>
-          <button class="btn-secondary small" onclick="toggleQR()">📱 QR Code</button>
-          <button class="btn-secondary small" onclick="goToForm()">← Back to Form</button>
-        </div>
-      </header>
-
-      <!-- Stats strip -->
-      <div class="stats-strip">
-        <div class="stat-card">
-          <div class="stat-number" id="stat-total">0</div>
-          <div class="stat-label">Submissions</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="stat-songs">0</div>
-          <div class="stat-label">Unique Songs</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="stat-top-genre">—</div>
-          <div class="stat-label">Top Genre</div>
-        </div>
-      </div>
-
-      <!-- Charts -->
-      <div class="dashboard-grid">
-        <div class="dash-card">
-          <h3>🔥 Top Requested Songs</h3>
-          <div id="top-songs-list"><p class="empty-state">No submissions yet...</p></div>
-        </div>
-        <div class="dash-card">
-          <h3>🎛️ Genre Breakdown</h3>
-          <div id="genre-chart"><p class="empty-state">No submissions yet...</p></div>
-        </div>
-      </div>
-
-      <!-- QR Section (hidden by default) -->
-      <div class="dash-card" id="qr-section" style="display:none">
-        <h3>📱 Share This Form</h3>
-        <div id="qr-code"></div>
-        <p class="qr-url" id="qr-url-text"></p>
-      </div>
-
-      <!-- All Submissions Table -->
-      <div class="dash-card">
-        <h3>📋 All Submissions</h3>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Song 1</th>
-                <th>Song 2</th>
-                <th>Song 3</th>
-                <th>Vibes</th>
-                <th>🚫 No Play</th>
-                <th>💃 Banger</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody id="submissions-tbody">
-              <tr><td colspan="9" class="empty-state">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-
-  <!-- ============================================================
-       JAVASCRIPT
-  ============================================================ -->
-  <script>
-  // =====================================================================
-  // 🔧 FIREBASE CONFIG
-  // Replace these values with your own from:
-  //   Firebase Console → Project Settings → Your Apps → Web App
-  // =====================================================================
-  const firebaseConfig = {
-    apiKey:            "YOUR_API_KEY",
-    authDomain:        "YOUR_AUTH_DOMAIN",
-    projectId:         "YOUR_PROJECT_ID",
-    storageBucket:     "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId:             "YOUR_APP_ID"
-  };
-
-  // =====================================================================
-  // 🔐 DJ DASHBOARD PIN — Change this before going live!
-  // =====================================================================
-  const DJ_PIN = "2121";
-
-  // =====================================================================
-  // INIT FIREBASE
-  // =====================================================================
-  firebase.initializeApp(firebaseConfig);
-  const db         = firebase.firestore();
-  const COLLECTION = 'song_requests';
-
-  let submissions          = [];
-  let dashboardUnsubscribe = null;
-  let qrVisible            = false;
-  let qrGenerated          = false;
-
-  // =====================================================================
-  // PAGE MANAGEMENT
-  // =====================================================================
-  function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-    document.getElementById('page-' + id).classList.remove('hidden');
-    window.scrollTo(0, 0);
-  }
-
-  function goToForm() {
-    showPage('form');
-    if (dashboardUnsubscribe) { dashboardUnsubscribe(); dashboardUnsubscribe = null; }
-  }
-
-  // =====================================================================
-  // PIN MODAL
-  // =====================================================================
-  function openDashboard() {
-    document.getElementById('modal-pin').classList.remove('hidden');
-    setTimeout(() => document.getElementById('pin-input').focus(), 150);
-  }
-
-  function closePinModal() {
-    document.getElementById('modal-pin').classList.add('hidden');
-    document.getElementById('pin-input').value = '';
-    document.getElementById('pin-error').classList.add('hidden');
-  }
-
-  function verifyPin() {
-    const pin = document.getElementById('pin-input').value;
-    if (pin === DJ_PIN) {
-      closePinModal();
-      showPage('dashboard');
-      initDashboard();
-    } else {
-      document.getElementById('pin-error').classList.remove('hidden');
-      const inp = document.getElementById('pin-input');
-      inp.value = '';
-      inp.style.animation = 'shake 0.35s ease';
-      inp.focus();
-      setTimeout(() => { inp.style.animation = ''; }, 380);
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /song_requests/{doc} {
+      allow read: if false;   // only you can read (via console)
+      allow write: if false;  // no more submissions
     }
   }
+}
+```
 
-  document.getElementById('pin-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') verifyPin();
-  });
+During the event, the default "test mode" rules are fine.
 
-  // =====================================================================
-  // FORM SUBMISSION
-  // =====================================================================
-  document.getElementById('request-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
+---
 
-    const song1 = document.getElementById('song1').value.trim();
-    if (!song1) { document.getElementById('song1').focus(); return; }
+## Cost
 
-    const btn  = document.getElementById('submit-btn');
-    const text = document.getElementById('submit-btn-text');
-    btn.disabled = true;
-    text.textContent = 'Submitting... 🎵';
+**Free.** Firebase's free Spark plan includes:
+- 1 GB Firestore storage
+- 50,000 reads/day
+- 20,000 writes/day
 
-    const vibes = [...document.querySelectorAll('input[name="vibe"]:checked')].map(cb => cb.value);
+A 21st birthday party will comfortably fit within these limits.
 
-    const data = {
-      name:            document.getElementById('name').value.trim() || 'Anonymous',
-      song1:           song1,
-      song2:           document.getElementById('song2').value.trim(),
-      song3:           document.getElementById('song3').value.trim(),
-      vibe:            vibes,
-      do_not_play:     document.getElementById('do-not-play').value.trim(),
-      dance_floor_song:document.getElementById('dance-song').value.trim(),
-      timestamp:       firebase.firestore.FieldValue.serverTimestamp()
-    };
+---
 
-    try {
-      await db.collection(COLLECTION).add(data);
-      e.target.reset();
-      document.querySelectorAll('.vibe-chip').forEach(c => c.classList.remove('selected'));
-      showSuccessModal();
-    } catch (err) {
-      console.error('Submit error:', err);
-      alert('Something went wrong. Please check your connection and try again.');
-    } finally {
-      btn.disabled = false;
-      text.textContent = 'Submit My Requests 🚀';
-    }
-  });
+## Summary Checklist
 
-  // =====================================================================
-  // SUCCESS MODAL & CONFETTI
-  // =====================================================================
-  function showSuccessModal() {
-    document.getElementById('modal-success').classList.remove('hidden');
-    fireConfetti();
-  }
-
-  function closeSuccessModal() {
-    document.getElementById('modal-success').classList.add('hidden');
-  }
-
-  function fireConfetti() {
-    const colors = ['#F5C518','#FF69B4','#ffffff','#FFF0A0','#FF1493'];
-    confetti({ particleCount: 130, spread: 80, origin: { y: 0.6 }, colors, zIndex: 9999 });
-    setTimeout(() => confetti({ particleCount: 60, spread: 100, angle: 60,  origin: { x: 0,   y: 0.65 }, colors, zIndex: 9999 }), 250);
-    setTimeout(() => confetti({ particleCount: 60, spread: 100, angle: 120, origin: { x: 1,   y: 0.65 }, colors, zIndex: 9999 }), 420);
-  }
-
-  // =====================================================================
-  // VIBE CHIP TOGGLE
-  // =====================================================================
-  document.querySelectorAll('.vibe-chip').forEach(chip => {
-    chip.addEventListener('click', () => chip.classList.toggle('selected'));
-  });
-
-  // =====================================================================
-  // LIVE COUNTER (real-time, shown on form page)
-  // =====================================================================
-  db.collection(COLLECTION).onSnapshot(snap => {
-    const el = document.getElementById('counter-number');
-    if (el) el.textContent = snap.size;
-  });
-
-  // =====================================================================
-  // DASHBOARD — real-time listener
-  // =====================================================================
-  function initDashboard() {
-    if (dashboardUnsubscribe) dashboardUnsubscribe();
-
-    dashboardUnsubscribe = db.collection(COLLECTION)
-      .orderBy('timestamp', 'desc')
-      .onSnapshot(snapshot => {
-        submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderDashboard(submissions);
-      }, err => console.error('Dashboard listener error:', err));
-  }
-
-  function renderDashboard(data) {
-    renderStats(data);
-    renderTopSongs(data);
-    renderGenreChart(data);
-    renderTable(data);
-  }
-
-  // ---- Stats ----
-  function renderStats(data) {
-    const agg = aggregateSongs(getAllSongs(data));
-    document.getElementById('stat-total').textContent = data.length;
-    document.getElementById('stat-songs').textContent = Object.keys(agg).length;
-
-    const genreStats = getGenreStats(data);
-    const top = Object.entries(genreStats).sort((a,b) => b[1]-a[1])[0];
-    document.getElementById('stat-top-genre').textContent = top
-      ? top[0].split('/')[0].trim()
-      : '—';
-  }
-
-  // ---- Extract all songs from submissions ----
-  function getAllSongs(data) {
-    const songs = [];
-    data.forEach(s => {
-      if (s.song1) songs.push(s.song1);
-      if (s.song2) songs.push(s.song2);
-      if (s.song3) songs.push(s.song3);
-      if (s.dance_floor_song) songs.push(s.dance_floor_song);
-    });
-    return songs;
-  }
-
-  // =====================================================================
-  // FUZZY MATCHING — Levenshtein + normalisation
-  // =====================================================================
-  function normalize(str) {
-    return str.toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  function levenshtein(a, b) {
-    const m = a.length, n = b.length;
-    if (!m) return n; if (!n) return m;
-    const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
-    for (let j = 1; j <= n; j++) dp[0][j] = j;
-    for (let i = 1; i <= m; i++)
-      for (let j = 1; j <= n; j++)
-        dp[i][j] = a[i-1] === b[j-1]
-          ? dp[i-1][j-1]
-          : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-    return dp[m][n];
-  }
-
-  function similarity(a, b) {
-    const na = normalize(a), nb = normalize(b);
-    if (!na || !nb) return 0;
-    if (na === nb) return 1;
-    return 1 - levenshtein(na, nb) / Math.max(na.length, nb.length);
-  }
-
-  // Aggregate songs using fuzzy matching — groups near-duplicates together
-  function aggregateSongs(songs) {
-    const groups = {}; // normalizedKey → { display, count, variants[] }
-
-    songs.forEach(song => {
-      if (!song || !song.trim()) return;
-      const norm = normalize(song);
-      let bestKey   = null;
-      let bestScore = 0;
-
-      for (const key of Object.keys(groups)) {
-        const score = similarity(norm, key);
-        if (score > bestScore && score > 0.75) { bestScore = score; bestKey = key; }
-      }
-
-      if (bestKey) {
-        groups[bestKey].count++;
-        if (!groups[bestKey].variants.some(v => normalize(v) === norm))
-          groups[bestKey].variants.push(song);
-      } else {
-        groups[norm] = { display: song, count: 1, variants: [song] };
-      }
-    });
-
-    return groups;
-  }
-
-  // ---- Top Songs ----
-  function renderTopSongs(data) {
-    const agg    = aggregateSongs(getAllSongs(data));
-    const sorted = Object.values(agg).sort((a,b) => b.count - a.count).slice(0, 10);
-    const cont   = document.getElementById('top-songs-list');
-
-    if (!sorted.length) { cont.innerHTML = '<p class="empty-state">No songs yet... 🎵</p>'; return; }
-
-    const max = sorted[0].count;
-    cont.innerHTML = sorted.map((item, i) => `
-      <div class="song-bar">
-        <div class="song-rank">${i + 1}</div>
-        <div class="song-info">
-          <div class="song-name" title="${escapeHtml(item.variants.join(' / '))}">${escapeHtml(item.display)}</div>
-          <div class="song-bar-track">
-            <div class="bar-inner" style="width:${Math.round(item.count / max * 100)}%"></div>
-          </div>
-        </div>
-        <div class="song-count">${item.count}×</div>
-      </div>
-    `).join('');
-  }
-
-  // ---- Genre Stats ----
-  function getGenreStats(data) {
-    const counts = {};
-    data.forEach(s => (s.vibe || []).forEach(v => { counts[v] = (counts[v] || 0) + 1; }));
-    return counts;
-  }
-
-  function renderGenreChart(data) {
-    const stats  = getGenreStats(data);
-    const sorted = Object.entries(stats).sort((a,b) => b[1]-a[1]);
-    const cont   = document.getElementById('genre-chart');
-
-    if (!sorted.length) { cont.innerHTML = '<p class="empty-state">No genre data yet...</p>'; return; }
-
-    const max = sorted[0][1];
-    cont.innerHTML = sorted.map(([genre, count]) => `
-      <div class="genre-bar">
-        <div class="genre-name">${escapeHtml(genre)}</div>
-        <div class="genre-bar-track">
-          <div class="genre-bar-fill" style="width:${Math.round(count / max * 100)}%"></div>
-        </div>
-        <div class="genre-count">${count}</div>
-      </div>
-    `).join('');
-  }
-
-  // ---- Submissions Table ----
-  function renderTable(data) {
-    const tbody = document.getElementById('submissions-tbody');
-    if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No submissions yet...</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = data.map((s, i) => {
-      const time = s.timestamp
-        ? new Date(s.timestamp.seconds * 1000).toLocaleString('en-ZA', { dateStyle: 'short', timeStyle: 'short' })
-        : '—';
-      return `
-        <tr>
-          <td><strong>${data.length - i}</strong></td>
-          <td>${escapeHtml(s.name || 'Anon')}</td>
-          <td>${escapeHtml(s.song1 || '—')}</td>
-          <td>${escapeHtml(s.song2 || '—')}</td>
-          <td>${escapeHtml(s.song3 || '—')}</td>
-          <td>${escapeHtml((s.vibe || []).join(', ') || '—')}</td>
-          <td style="color:var(--pink)">${escapeHtml(s.do_not_play || '—')}</td>
-          <td style="color:var(--gold)">${escapeHtml(s.dance_floor_song || '—')}</td>
-          <td style="color:var(--text-muted)">${time}</td>
-        </tr>`;
-    }).join('');
-  }
-
-  // =====================================================================
-  // CSV EXPORT
-  // =====================================================================
-  function exportCSV() {
-    if (!submissions.length) { alert('No submissions to export yet!'); return; }
-
-    const headers = ['#','Name','Song 1','Song 2','Song 3','Vibes','Do Not Play','Dance Floor Song','Timestamp'];
-    const rows    = submissions.map((s, i) => [
-      i + 1,
-      s.name || 'Anonymous',
-      s.song1 || '',
-      s.song2 || '',
-      s.song3 || '',
-      (s.vibe || []).join(' | '),
-      s.do_not_play || '',
-      s.dance_floor_song || '',
-      s.timestamp ? new Date(s.timestamp.seconds * 1000).toLocaleString() : ''
-    ]);
-
-    const csv  = [headers, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = Object.assign(document.createElement('a'), { href: url, download: 'chelizes-21st-playlist.csv' });
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  // =====================================================================
-  // QR CODE
-  // =====================================================================
-  function toggleQR() {
-    const section = document.getElementById('qr-section');
-
-    if (qrVisible) {
-      section.style.display = 'none';
-      qrVisible = false;
-      return;
-    }
-
-    section.style.display = 'block';
-    qrVisible = true;
-    setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-
-    if (!qrGenerated) {
-      const url = window.location.origin + window.location.pathname;
-      document.getElementById('qr-url-text').textContent = url;
-      document.getElementById('qr-code').innerHTML = '';
-      new QRCode(document.getElementById('qr-code'), {
-        text: url, width: 180, height: 180,
-        colorDark: '#000000', colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-      });
-      qrGenerated = true;
-    }
-  }
-
-  // =====================================================================
-  // UTILS
-  // =====================================================================
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // =====================================================================
-  // START
-  // =====================================================================
-  showPage('form');
-  </script>
-
-</body>
-</html>
+- [ ] Create Firebase project + Firestore database (test mode)
+- [ ] Copy Firebase config into `index.html`
+- [ ] Change the DJ PIN in `index.html`
+- [ ] Upload `index.html` to Netlify Drop
+- [ ] Share the URL — party time 🎉
